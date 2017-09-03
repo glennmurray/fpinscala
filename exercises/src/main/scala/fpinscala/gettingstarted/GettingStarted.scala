@@ -81,9 +81,7 @@ object FormatAbsAndFactorial {
 }
 
 object TestFib {
-
   import MyModule._
-
   // test implementation of `fib`
   def main(args: Array[String]): Unit = {
     println("Expected: 0, 1, 1, 2, 3, 5, 8")
@@ -96,7 +94,6 @@ object TestFib {
 // *without* having to give it a name
 object AnonymousFunctions {
   import MyModule._
-
   // Some examples of anonymous functions:
   def main(args: Array[String]): Unit = {
     println(formatResult("absolute value", -42, abs))
@@ -156,14 +153,26 @@ object PolymorphicFunctions {
 
   // Exercise 2: Implement a polymorphic function to check whether
   // an `Array[A]` is sorted
-  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = ???
+  //def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = ???
+  @annotation.tailrec
+  def isSortedMono(as: Array[Int], gt: (Int, Int) => Boolean): Boolean = {
+    if (as.length <= 1) true
+    else if ( ! gt(as.head, as.tail.head)) false
+    else isSortedMono(as.tail, gt)
+  }
+  @annotation.tailrec
+  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = {
+    if (as.length <= 1) true
+    else if ( ! gt(as.head, as.tail.head)) false
+    else isSorted(as.tail, gt)
+  }
 
   // Polymorphic functions are often so constrained by their type
   // that they only have one implementation! Here's an example:
-
   def partial1[A,B,C](a: A, f: (A,B) => C): B => C =
     (b: B) => f(a, b)
 
+  
   // Exercise 3: Implement `curry`.
 
   // Note that `=>` associates to the right, so we could
@@ -191,4 +200,24 @@ object PolymorphicFunctions {
 
   def compose[A,B,C](f: B => C, g: A => B): A => C =
     ???
+}
+
+object TestIsSorted {
+  import PolymorphicFunctions._
+  def main(args: Array[String]): Unit = {
+    val arrSorted = Array(9, 6, 4, 3, 2, 1)
+    val arrUnsort = Array(3, 4, 6, 2, 1, 6)
+    def intGt(i: Int, j: Int): Boolean = i > j
+    println(s"sorted is sorted: ${isSortedMono(arrSorted, intGt)}")
+    println(s"unsorted is sorted: ${isSortedMono(arrUnsort, intGt)}")
+    // isSorted
+    println(s"sorted is sorted: ${isSorted(arrSorted, intGt)}")
+    println(s"unsorted is sorted: ${isSorted(arrUnsort, intGt)}")
+    // String length
+    def strGt(i: String, j: String): Boolean = i.length > j.length
+    val arrSortedS = Array("abc", "ab", "a", "")
+    val arrUnsortS = Array("abc", "ab", "abcd")
+    println(s"sorted is sorted: ${isSorted(arrSortedS, strGt)}")
+    println(s"unsorted is sorted: ${isSorted(arrUnsortS, strGt)}")
+  }
 }
