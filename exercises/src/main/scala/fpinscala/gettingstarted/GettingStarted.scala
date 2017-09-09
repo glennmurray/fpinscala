@@ -62,7 +62,7 @@ object MyModule {
 
   // We can generalize `formatAbs` and `formatFactorial` to
   // accept a _function_ as a parameter
-  def formatResult(name: String, n: Int, f: Int => Int) = {
+  def formatResult(name: String, n: Int, f: Int => Int): String = {
     val msg = "The %s of %d is %d."
     msg.format(name, n, f(n))
   }
@@ -166,25 +166,30 @@ object PolymorphicFunctions {
     else if ( ! gt(as.head, as.tail.head)) false
     else isSorted(as.tail, gt)
   }
+  // Better:  (l, l.tail).zipped.forall(_ <= _)
 
   // Polymorphic functions are often so constrained by their type
   // that they only have one implementation! Here's an example:
   def partial1[A,B,C](a: A, f: (A,B) => C): B => C =
     (b: B) => f(a, b)
 
-  
+  //////////////////////////////////// Section 2.6
   // Exercise 3: Implement `curry`.
 
   // Note that `=>` associates to the right, so we could
   // write the return type as `A => B => C`
-  def curry[A,B,C](f: (A, B) => C): A => (B => C) =
-    ???
-
+  //def curry[A,B,C](f: (A, B) => C): A => (B => C) = ???
+  def curry[A,B,C](f: (A, B) => C): A => (B => C) = {
+    //(a) => ((b) => f(a, b)) same as
+    (a) => (b) => f(a, b)
+  }
   // NB: The `Function2` trait has a `curried` method already
 
   // Exercise 4: Implement `uncurry`
-  def uncurry[A,B,C](f: A => B => C): (A, B) => C =
-    ???
+  //def uncurry[A,B,C](f: A => B => C): (A, B) => C = ???
+  def uncurry[A,B,C](f: A => B => C): (A, B) => C = {
+    (a: A, b: B) => f(a)(b)
+  }
 
   /*
   NB: There is a method on the `Function` object in the standard library,
@@ -197,12 +202,22 @@ object PolymorphicFunctions {
   */
 
   // Exercise 5: Implement `compose`
-
-  def compose[A,B,C](f: B => C, g: A => B): A => C =
-    ???
+  //def compose[A,B,C](f: B => C, g: A => B): A => C = ???
+  def compose[A,B,C](f: B => C, g: A => B): A => C = {
+    (a: A) => f(g(a))
+  }
 }
 
-object TestIsSorted {
+object Test2e1Fib {
+  import MyModule._
+  // test implementation of `fib`
+  def main(args: Array[String]): Unit = {
+    println("Expected: 0, 1, 1, 2, 3, 5, 8")
+    println("Actual:   %d, %d, %d, %d, %d, %d, %d".format(fib(0), fib(1), fib(2), fib(3), fib(4), fib(5), fib(6)))
+  }
+}
+
+object Test2e2IsSorted {
   import PolymorphicFunctions._
   def main(args: Array[String]): Unit = {
     val arrSorted = Array(9, 6, 4, 3, 2, 1)
@@ -219,5 +234,41 @@ object TestIsSorted {
     val arrUnsortS = Array("abc", "ab", "abcd")
     println(s"sorted is sorted: ${isSorted(arrSortedS, strGt)}")
     println(s"unsorted is sorted: ${isSorted(arrUnsortS, strGt)}")
+  }
+}
+
+object Test2e3Curry {
+  import PolymorphicFunctions._
+  def main(args: Array[String]): Unit = {
+    val f: (Int, String) => Double = (i: Int, s: String) => i / (1.0 + s.length)
+    val g: (Int) => (String) => Double = curry(f)
+    assert(g.isInstanceOf[(Int) => (String) => Double])
+    println(s"Type of curry((Int, String) => Double) is (Int) => (String) => Double")
+  }
+}
+
+object Test2e4Uncurry {
+  import PolymorphicFunctions._
+  def main(args: Array[String]): Unit = {
+    //uncurry[A,B,C](f: A => B => C): (A, B) => C
+    //val f: (Int) => (String) => Double = (i: Int) => ((s: String) => i + s.length + 3.14 )
+    val f: (Int) => (String) => Double = (i: Int) => (s: String) => i + s.length + 3.14
+    val g: (Int, String) => Double = uncurry(f)
+    assert(g.isInstanceOf[(Int, String) => Double])
+    // assert(g.isInstanceOf[(Int) => (String) => Double]) false, even
+    // though they are isomorphic.
+    println(s"Type of uncurry((Int) => (String) => Double) is (Int, String) => Double")
+  }
+}
+
+object Test2e5Compose {
+  import PolymorphicFunctions._
+  def main(args: Array[String]): Unit = {
+    val g = (s: String) => s.length
+    val f = (i: Int) => s"int: $i"
+    val h: (String) => String = compose(f, g)
+    val l = List("a", "aa", "aaa")
+    println(s"f then g:\t\t${l.map(g).map(f)}")
+    println(s"compose(f, g):\t${l.map(h)}")
   }
 }
