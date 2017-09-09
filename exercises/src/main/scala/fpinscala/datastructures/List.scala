@@ -50,11 +50,25 @@ object List { // `List` companion object. Contains functions for creating and wo
     foldRight(ns, 1.0)(_ * _) // `_ * _` is more concise notation for `(x,y) => x * y`; see sidebar
 
 
-  def tail[A](l: List[A]): List[A] = ???
+  //def tail[A](l: List[A]): List[A] = ???
+  def tail[A](l: List[A]): List[A] = l match {
+    case Nil => Nil
+    case Cons(x,xs) => xs
+  }
 
-  def setHead[A](l: List[A], h: A): List[A] = ???
+  //def setHead[A](l: List[A], h: A): List[A] = ???
+  def setHead[A](l: List[A], h: A): List[A] = Cons(h, List.tail(l))
 
-  def drop[A](l: List[A], n: Int): List[A] = ???
+  //def drop[A](l: List[A], n: Int): List[A] = ???
+  def drop[A](l: List[A], n: Int): List[A] = {
+    if (n < 1) l
+    else {
+      l match {
+        case Nil => Nil
+        case _ => List.drop(List.tail(l), n - 1)
+      }
+    }
+  }
 
   def dropWhile[A](l: List[A], f: A => Boolean): List[A] = ???
 
@@ -65,4 +79,41 @@ object List { // `List` companion object. Contains functions for creating and wo
   def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
 
   def map[A,B](l: List[A])(f: A => B): List[B] = ???
+}
+
+object ListExercises {
+  // Exercise 3.1
+  val x = fpinscala.datastructures.List(1, 2, 3, 4, 5) match {
+    case Cons(x, Cons(2, Cons(4, _))) => x
+    case Nil => 42
+    case Cons(x, Cons(y, Cons(3, Cons(4, _)))) => x + y
+    case Cons(h, t) => h + List.sum(t)
+    case _ => 101
+  }
+
+  def main(args: Array[String]): Unit = {
+    // Exercise 3.1
+    assert(x == 3)
+
+    // Ex. 3.2, implement tail.
+    val l = fpinscala.datastructures.List(1, 2, 3)
+    assert(List.tail(l) match {
+      case Cons(2, Cons(3, Nil)) => true
+      case _ => false
+    })
+
+    // Ex. 3.3, implement setHead.
+    assert(List.setHead(l, 4) match {
+      case Cons(4, Cons(2, Cons(3, Nil))) => true
+      case _ => false
+    })
+
+    // Ex. 3.4 implement drop.
+    assert(List.drop(l, 2) match {
+      case Cons(3, Nil) => true
+      case _ => false
+    })
+
+
+  }
 }
