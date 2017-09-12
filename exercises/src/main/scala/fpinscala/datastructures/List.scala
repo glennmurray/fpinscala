@@ -60,6 +60,7 @@ object List { // `List` companion object. Contains functions for creating and wo
   def setHead[A](l: List[A], h: A): List[A] = Cons(h, List.tail(l))
 
   //def drop[A](l: List[A], n: Int): List[A] = ???
+  @annotation.tailrec
   def drop[A](l: List[A], n: Int): List[A] = {
     if (n < 1) l
     else {
@@ -70,7 +71,14 @@ object List { // `List` companion object. Contains functions for creating and wo
     }
   }
 
-  def dropWhile[A](l: List[A], f: A => Boolean): List[A] = ???
+  //def dropWhile[A](l: List[A], f: A => Boolean): List[A] = ???
+  @annotation.tailrec
+  def dropWhile[A](l: List[A], f: A => Boolean): List[A] = l match {
+    case Nil => Nil
+    case Cons(h, t) =>
+      if (f(h)) dropWhile(t, f)
+      else l
+  }
 
   def init[A](l: List[A]): List[A] = ???
 
@@ -95,8 +103,9 @@ object ListExercises {
     // Exercise 3.1
     assert(x == 3)
 
-    // Ex. 3.2, implement tail.
     val l = fpinscala.datastructures.List(1, 2, 3)
+
+    // Ex. 3.2, implement tail.
     assert(List.tail(l) match {
       case Cons(2, Cons(3, Nil)) => true
       case _ => false
@@ -110,6 +119,13 @@ object ListExercises {
 
     // Ex. 3.4 implement drop.
     assert(List.drop(l, 2) match {
+      case Cons(3, Nil) => true
+      case _ => false
+    })
+
+    // Ex. 3.5 implement dropWhile.
+    def lte2(i: Int): Boolean = i <= 2
+    assert(List.dropWhile(l, lte2) match {
       case Cons(3, Nil) => true
       case _ => false
     })
