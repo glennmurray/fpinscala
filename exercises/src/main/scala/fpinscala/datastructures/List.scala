@@ -102,7 +102,6 @@ object List { // `List` companion object. Contains functions for creating and wo
   // NOT @annotation.tailrec
   def length[A](l: List[A]): Int = l match {
     case Nil => 0
-    case Cons(h, Nil) => 1
     case Cons(h, t) => 1 + length(t)
   }
 
@@ -110,9 +109,14 @@ object List { // `List` companion object. Contains functions for creating and wo
   //def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
   def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = l match {
     case Nil => z
-    case Cons(h, Nil) => f(z, h)
     case Cons(h, t) => f( foldLeft(t, z)(f),  h )
   }
+  // Better, from the answers.
+//  @annotation.tailrec
+//  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = l match {
+//    case Nil => z
+//    case Cons(h,t) => foldLeft(t, f(z,h))(f)
+//  }
 
   // Not a numbered exercise in the book.
   //def map[A,B](l: List[A])(f: A => B): List[B] = ???
