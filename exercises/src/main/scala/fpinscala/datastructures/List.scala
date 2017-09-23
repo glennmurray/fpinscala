@@ -72,21 +72,54 @@ object List { // `List` companion object. Contains functions for creating and wo
   }
 
   //def dropWhile[A](l: List[A], f: A => Boolean): List[A] = ???
+//  @annotation.tailrec
+//  def dropWhile[A](l: List[A], f: A => Boolean): List[A] = l match {
+//    case Nil => Nil
+//    case Cons(h, t) =>
+//      if (f(h)) dropWhile(t, f)
+//      else l
+//  }
   @annotation.tailrec
   def dropWhile[A](l: List[A], f: A => Boolean): List[A] = l match {
     case Nil => Nil
-    case Cons(h, t) =>
-      if (f(h)) dropWhile(t, f)
-      else l
+    case Cons(h, t) if f(h) => dropWhile(t, f)
+    case _ => l
   }
 
-  def init[A](l: List[A]): List[A] = ???
+  // Returns a List consisting of all but the last element of a List.
+  //def init[A](l: List[A]): List[A] = ???
+  // NOT @annotation.tailrec
+  def init[A](l: List[A]): List[A] = {
+    l match {
+      case Nil => Nil
+      case Cons(h, Nil) => Nil
+      case Cons(h, t) => Cons(h, init(t))
+    }
+  }
 
-  def length[A](l: List[A]): Int = ???
+  // Not a numbered exercise in the book.
+  //def length[A](l: List[A]): Int = ???
+  // NOT @annotation.tailrec
+  def length[A](l: List[A]): Int = l match {
+    case Nil => 0
+    case Cons(h, Nil) => 1
+    case Cons(h, t) => 1 + length(t)
+  }
 
-  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
+  // Not a numbered exercise in the book.
+  //def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
+  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = l match {
+    case Nil => z
+    case Cons(h, Nil) => f(z, h)
+    case Cons(h, t) => f( foldLeft(t, z)(f),  h )
+  }
 
-  def map[A,B](l: List[A])(f: A => B): List[B] = ???
+  // Not a numbered exercise in the book.
+  //def map[A,B](l: List[A])(f: A => B): List[B] = ???
+  def map[A,B](l: List[A])(f: A => B): List[B] = l match {
+    case Nil => Nil
+    case Cons(h, t) => Cons(f(h), map(t)(f))
+  }
 }
 
 object ListExercises {
@@ -130,6 +163,37 @@ object ListExercises {
       case _ => false
     })
 
+    // Ex. 3.6 implement init.
+    assert(List.init(l) match {
+      case Cons(1, (Cons(2, Nil))) => true
+      case _ => false
+    })
+    assert(List.init(List.tail(l)) match {
+      case Cons(2, Nil) => true
+      case _ => false
+    })
 
+    // (Not in book, but here).  Implement length.
+    assert(List.length(l) match {
+      case 3 => true
+      case _ => false
+    })
+
+    import scala.collection.immutable
+    val answer = immutable.List(2, 3).foldLeft(0)(_ - _)
+    //println(immutable.List(2, 3).foldRight(0)(_ - _))
+    // (Not in book, but here).  Implement foldLeft
+    def scale(i: Int, j: Int): Int = i - j
+    assert(List.foldLeft( fpinscala.datastructures.List(2, 3), 0)(scale) match {
+      case -5 => true
+      case e => println(e); false
+    })
+
+    // (Not in book, but here).  Implement map.
+    assert(List.map(l)(i => 2 * i) match {
+      case Cons(2, Cons(4, Cons(6, Nil))) => true
+      case _ => false
+    })
   }
+
 }
