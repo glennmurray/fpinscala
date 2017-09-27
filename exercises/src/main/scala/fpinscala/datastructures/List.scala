@@ -86,7 +86,7 @@ object List { // `List` companion object. Contains functions for creating and wo
     case _ => l
   }
 
-  // Returns a List consisting of all but the last element of a List.
+  // Exercise 3.6 Returns a List consisting of all but the last element of a List.
   //def init[A](l: List[A]): List[A] = ???
   // NOT @annotation.tailrec
   def init[A](l: List[A]): List[A] = {
@@ -97,28 +97,35 @@ object List { // `List` companion object. Contains functions for creating and wo
     }
   }
 
-  // Not a numbered exercise in the book.
+  // Exercise 3.9.
   //def length[A](l: List[A]): Int = ???
   // NOT @annotation.tailrec
-  def length[A](l: List[A]): Int = l match {
-    case Nil => 0
-    case Cons(h, t) => 1 + length(t)
+//  def length[A](l: List[A]): Int = l match {
+//    case Nil => 0
+//    case Cons(h, t) => 1 + length(t)
+//  }
+  // Use foldRight.
+  def length[A](l: List[A]): Int = {
+    foldRight(l, 0)((_, i) => i + 1)
   }
 
-  // Not a numbered exercise in the book.
+  // Exercise 3.10.  Write a tail-recursive foldLeft.
   //def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
+  // Mine: def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = l match {
+  //  case Nil => z
+  //  case Cons(h, t) => f( foldLeft(t, z)(f),  h )
+  //}
+  // From the answers.
+  @annotation.tailrec
   def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = l match {
     case Nil => z
-    case Cons(h, t) => f( foldLeft(t, z)(f),  h )
+    case Cons(h,t) => foldLeft(t, f(z,h))(f)
   }
-  // Better, from the answers.
-//  @annotation.tailrec
-//  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = l match {
-//    case Nil => z
-//    case Cons(h,t) => foldLeft(t, f(z,h))(f)
-//  }
 
-  // Not a numbered exercise in the book.
+  // Ex. 3.11 Write sum, product, and length with foldLeft.
+  
+
+  // Exercise 3.18
   //def map[A,B](l: List[A])(f: A => B): List[B] = ???
   def map[A,B](l: List[A])(f: A => B): List[B] = l match {
     case Nil => Nil
@@ -177,23 +184,23 @@ object ListExercises {
       case _ => false
     })
 
-    // (Not in book, but here).  Implement length.
+    // Exercise 3.9.  Implement length.
     assert(List.length(l) match {
       case 3 => true
       case _ => false
     })
 
-    import scala.collection.immutable
-    val answer = immutable.List(2, 3).foldLeft(0)(_ - _)
+    // Exercise 3.10.  Implement foldLeft
+    //import scala.collection.immutable
+    //val answer = immutable.List(2, 3).foldLeft(0)(_ - _)
     //println(immutable.List(2, 3).foldRight(0)(_ - _))
-    // (Not in book, but here).  Implement foldLeft
     def scale(i: Int, j: Int): Int = i - j
     assert(List.foldLeft( fpinscala.datastructures.List(2, 3), 0)(scale) match {
       case -5 => true
       case e => println(e); false
     })
 
-    // (Not in book, but here).  Implement map.
+    // Exercise 3.18.  Implement map.
     assert(List.map(l)(i => 2 * i) match {
       case Cons(2, Cons(4, Cons(6, Nil))) => true
       case _ => false
