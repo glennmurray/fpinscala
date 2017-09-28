@@ -106,7 +106,7 @@ object List { // `List` companion object. Contains functions for creating and wo
 //  }
   // Use foldRight.
   def length[A](l: List[A]): Int = {
-    foldRight(l, 0)((_, i) => i + 1)
+    List.foldRight(l, 0)((_, i) => i + 1)
   }
 
   // Exercise 3.10.  Write a tail-recursive foldLeft.
@@ -123,7 +123,21 @@ object List { // `List` companion object. Contains functions for creating and wo
   }
 
   // Ex. 3.11 Write sum, product, and length with foldLeft.
-  
+  def sumFoldLeft(l: List[Int]): Int = List.foldLeft(l, 0)(_ + _)
+  def productFoldLeft(l: List[Int]): Int = List.foldLeft(l, 1)(_ * _)
+  def lengthFoldLeft(l: List[Int]): Int = List.foldLeft(l, 0)((i, _) => i + 1)
+
+  // Ex. 3.12 Write reverse.
+  def reverse[A](l: List[A]): List[A] = {
+    foldLeft(l, Nil: List[A])((revList, y) => Cons(y, revList))
+  }
+
+  // Ex. 3.13 (Hard) Write foldLeft in terms of foldRight.
+
+  // Ex. 3.14 Implement append with foldLeft or Right.
+  def appendFold[A](l1: List[A], l2: List[A]): List[A] = {
+    foldLeft(l2, l1)((as, a) => Cons(a, as))
+  }
 
   // Exercise 3.18
   //def map[A,B](l: List[A])(f: A => B): List[B] = ???
@@ -199,6 +213,30 @@ object ListExercises {
       case -5 => true
       case e => println(e); false
     })
+
+    // Exercise 3.11.  Sum, product, length with foldLeft.
+    assert((List.sumFoldLeft(l), List.productFoldLeft(l), List.lengthFoldLeft(l)) match {
+      case (6, 6, 3) => true
+      case _ => false
+    })
+    // For lengthFoldLeft: Cons(h,t) => foldLeft(t, f(z,h))(f)
+    //    List.foldLeft(Cons(1, Cons(2, Cons(3, Nil))), 0)((i, _) => i + 1)
+    //            List.foldLeft(Cons(2, Cons(3, Nil)),  1)((i, _) => i + 1)
+    //                    List.foldLeft(Cons(3, Nil),   2)((i, _) => i + 1)
+    //                            List.foldLeft(Nil,    3)((i, _) => i + 1)
+
+    // Ex. 3.12 Write reverse.
+    assert(List.reverse(l) match {
+      case Cons(3, Cons(2, Cons(1, Nil))) => true
+      case _ => false
+    })
+
+    // Ex. 3.14 Implement append with foldLeft or Right.
+    assert(List.appendFold(l, Cons(4, Nil)) match {
+      case Cons(4, Cons(3, Cons(2, Cons(1, Nil)))) => true
+      case _ => false
+    })
+
 
     // Exercise 3.18.  Implement map.
     assert(List.map(l)(i => 2 * i) match {
