@@ -37,7 +37,7 @@ object List { // `List` companion object. Contains functions for creating and wo
       case Cons(h,t) => Cons(h, append(t, a2))
     }
 
-  def foldRight[A,B](as: List[A], z: B)(f: (A, B) => B): B = // Utility functions
+  def foldRight[A,B](as: List[A], z: B)(f: (A, B) => B): B = 
     as match {
       case Nil => z
       case Cons(x, xs) => f(x, foldRight(xs, z)(f))
@@ -132,20 +132,97 @@ object List { // `List` companion object. Contains functions for creating and wo
     foldLeft(l, Nil: List[A])((revList, y) => Cons(y, revList))
   }
 
-  // Ex. 3.13 (Hard) Write foldLeft in terms of foldRight.
+
+  // Ex. 3.13 (Hard) Write foldLeft in terms of foldRight, and vice-versa.
+  def foldRightViaFoldLeft[A,B](as: List[A], z: B)(f: (A, B) => B): B = {
+    //foldLeft(reverse(as), z)((b, a) => f(a, b))  // or
+    foldLeft(as, (b:B) => b)((g,a) => b => g(f(a,b)))(z)
+  }
+
 
   // Ex. 3.14 Implement append with foldLeft or Right.
-  def appendFold[A](l1: List[A], l2: List[A]): List[A] = {
-    foldLeft(l2, l1)((as, a) => Cons(a, as))
+  def appendFoldR[A](l1: List[A], l2: List[A]): List[A] = {
+    //List.foldRight(l1, l2)((a, l2s) => Cons(a, l2s))
+    List.foldRight(l1, l2)(Cons(_, _))
   }
 
-  // Exercise 3.18
+  // Ex. 3.15 Concatenate a list of lists into a single list.
+  def concat[A](l: List[List[A]]): List[A] = {
+    foldRight(l, Nil: List[A])(append)
+  }
+
+  // Ex. 3.16 Write a function that increments a List[Int].
+  def add1(l: List[Int]): List[Int] = {
+    //reverse(foldLeft(l, Nil: List[Int])((x, y) => Cons(y + 1, x )))
+    foldRight(l, Nil: List[Int])((x, y) => Cons(x + 1, y))
+  }
+
+  //Ex. 3.17 Write a function that turns each value in a List[Double]
+  // into a String.
+  def doubleToString(l: List[Double]): List[String] = {
+    foldRight(l, Nil: List[String])((x, y) => Cons(x.toString, y))
+  }
+
+  // Exercise 3.18 Implement map.  Here are two solutions.
   //def map[A,B](l: List[A])(f: A => B): List[B] = ???
-  def map[A,B](l: List[A])(f: A => B): List[B] = l match {
-    case Nil => Nil
-    case Cons(h, t) => Cons(f(h), map(t)(f))
+  // def map[A,B](l: List[A])(f: A => B): List[B] = l match {
+  //   case Nil => Nil
+  //   case Cons(h, t) => Cons(f(h), map(t)(f))
+  // }
+  def map[A,B](l: List[A])(f: A => B): List[B] = {
+    foldRight(l, Nil: List[B])((x, y) => Cons(f(x), y))
+  }
+
+  // Ex. 3.19 Write a function filter that removes elements from a list
+  // unless they satisfy a given predicate.
+  def filter[A](l: List[A])(f: A => Boolean): List[A] = {
+    foldRight(l, Nil: List[A])((x, y) => if (f(x)) Cons(x,y) else y)
+  }
+
+  // Ex. 3.20 Write a function flatMap that works like map except that
+  // the function given will return a list instead of a single result,
+  // and that list should be inserted into the final resulting list.
+  def flatMap[A,B](l: List[A])(f: A => List[B]): List[B] = {
+    //concat(map(l)(f))   (answer) or mine:
+    foldRight(l, Nil: List[B])((x, y) => append(f(x), y))
+  }
+
+  // Ex. 3.21  Use flatMap to implement filter.
+  def filterViaFlatMap[A](l: List[A])(f: A => Boolean): List[A] = {
+    flatMap(l)(a => if (f(a)) List(a) else Nil)
+  }
+
+  // Ex. 3.22 Write a function that accepts two lists and constructs a
+  // new list by adding corresponding elements. For example, List(1,2,3)
+  // and List(4,5,6) become List(5,7,9).
+  def addPairwise(a: List[Int], b: List[Int]): List[Int] = (a,b) match {
+    case (Nil, _) => Nil
+    case (_, Nil) => Nil
+    case (Cons(ha, has), Cons(hb, hbs)) =>
+      Cons(ha + hb, addPairwise(has, hbs))
+  }
+
+  // Ex. 3.23 Generalize the function you just wrote so that it’s not
+  // specific to integers or addition. Name it zipWith.
+  def zipWith[A,B,C](a: List[A], b: List[B])(f:(A, B) => C): List[C] = (a,b) match {
+    case (Nil, _) => Nil
+    case (_, Nil) => Nil
+    case (Cons(ha, has), Cons(hb, hbs)) =>
+      Cons(f(ha, hb), zipWith(has, hbs)(f))
+  }
+
+  // Ex. 3.24 Hard: As an example, implement hasSubsequence for checking
+  // whether a List contains another List as a subsequence.
+  def hasSubsequence[A](sup: List[A], sub: List[A])
+      : Boolean = (sup, sub) match {
+    case (Nil, Nil) => true
+    case (Nil, _) => false
+    case (_, Nil) => true
+    case (Cons(ha, has), Cons(hb, hbs)) =>     ha == hb
+
   }
 }
+
 
 object ListExercises {
   // Exercise 3.1
@@ -208,8 +285,8 @@ object ListExercises {
     //import scala.collection.immutable
     //val answer = immutable.List(2, 3).foldLeft(0)(_ - _)
     //println(immutable.List(2, 3).foldRight(0)(_ - _))
-    def scale(i: Int, j: Int): Int = i - j
-    assert(List.foldLeft( fpinscala.datastructures.List(2, 3), 0)(scale) match {
+    def subtr(i: Int, j: Int): Int = i - j
+    assert(List.foldLeft(List(2, 3), 0)(subtr) match {
       case -5 => true
       case e => println(e); false
     })
@@ -231,18 +308,100 @@ object ListExercises {
       case _ => false
     })
 
+    // Ex. 3.13 Implement foldRight with  foldLeft.
+    val z = 0; def scale(i: Int, j: Int) = 2 * i + j
+    assert(List.foldRightViaFoldLeft(l, z)(scale) match {
+      case 12 => true
+      case _ =>
+        val expected = List.foldRight(l, z)(scale)
+        println(s"\nEx. 3.13 foldRightViaFoldLeft\nexpected: $expected")
+        val result = List.foldRightViaFoldLeft(l, z)(scale)
+        println(  s"result  : $result")
+        false
+    })
+    // foldRight(l, 0)((x, y) => 2 * x + y
+    // f(1, foldRight(L(2,3), 0))
+    // f(1, f(2, foldRight(L(3), 0)))
+    // f(1, f(2, f(3, 0)))
+    // f(1, f(2, 6))
+    // f(1, 10) = 12
+
+
+
     // Ex. 3.14 Implement append with foldLeft or Right.
-    assert(List.appendFold(l, Cons(4, Nil)) match {
-      case Cons(4, Cons(3, Cons(2, Cons(1, Nil)))) => true
+    assert(List.appendFoldR(l, Cons(4, Cons(5, Nil))) match {
+      case Cons(1, Cons(2, Cons(3, Cons(4, Cons(5, Nil))))) => true
+      case _ =>
+        val expected = List.append(l, Cons(4, Cons(5, Nil)))
+        println(s"Ex. 3.14\nexpected: $expected")
+        val result = List.appendFoldR(l, Cons(4, Cons(5, Nil)))
+        println(  s"result  : $result")
+        false
+    })
+
+    // Ex. 3.15 Concatenate a list of lists into a single list.
+    assert(List.concat(List(l, l)) match {
+      case Cons(1, Cons(2, Cons(3, Cons(1, Cons(2, Cons(3, Nil)))))) => true
       case _ => false
     })
 
+    // Ex. 3.16 Write a function that increments a List[Int].
+    assert(List.add1(l) match {
+      case Cons(2, Cons(3, Cons(4, Nil))) => true
+      case _ => false
+    })
+
+    //Ex. 3.17 Write a function that turns each value in a List[Double]
+    // into a String.
+    assert(List.doubleToString(Cons(3.0, (Cons(4.0, Nil)))) match {
+      case Cons("3.0", (Cons("4.0", Nil))) => true
+      case _ => false
+    })
+
+    // Ex. 3.19 Write a function filter that removes elements from a list
+    // unless they satisfy a given predicate.
+    assert(List.filter(List.concat(List(l, l)))(_ % 2 == 0) match {
+      case Cons(2, Cons(2, Nil)) => true
+      case _ => false
+    })
 
     // Exercise 3.18.  Implement map.
     assert(List.map(l)(i => 2 * i) match {
       case Cons(2, Cons(4, Cons(6, Nil))) => true
       case _ => false
     })
-  }
 
+    // Ex. 3.20 Implement flatMap.
+    assert(List.flatMap(l)(i => List(i,i)) match {
+      case Cons(1, Cons(1, Cons(2, Cons(2, Cons(3, Cons(3, Nil)))))) => true
+      case _ => false
+    })
+
+    // Ex. 3.21  Use flatMap to implement filter.
+    assert(List.filterViaFlatMap(List.concat(List(l, l)))(_ % 2 == 0) match {
+      case Cons(2, Cons(2, Nil)) => true
+      case _ => false
+    })
+
+    // Ex. 3.22 Write a function that accepts two lists and constructs a
+    // new list by adding corresponding elements. For example, List(1,2,3)
+    // and List(4,5,6) become List(5,7,9).
+    assert(List.addPairwise(l, l) match {
+      case Cons(2, Cons(4, Cons(6, Nil))) => true
+      case _ => false
+    })
+
+
+    // Ex. 3.23 Generalize the function you just wrote so that it’s not
+    // specific to integers or addition. Name it zipWith.
+    assert(List.zipWith(l, l)((x, y) => x * y) match {
+      case Cons(1, Cons(4, Cons(9, Nil))) => true
+      case _ => false
+    })
+
+    // Ex. 3.24 Hard: As an example, implement hasSubsequence for checking
+    // whether a List contains another List as a subsequence.
+    assert(List.hasSubsequence(l, Cons(2, Cons(3, Nil))))
+
+  }
 }
