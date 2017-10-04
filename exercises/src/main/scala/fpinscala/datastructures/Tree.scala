@@ -24,7 +24,11 @@ object Tree {
 
   // Ex. 3.27 Write a function depth that returns the maximum path
   // length from the root of a tree to any leaf.
-  def depth[A](t: Tree[A]): Int = ???
+  def depth[A](t: Tree[A]): Int = t match {
+    case Leaf(_) => 0 // Why not count the leaf?  Because we count the root.
+    case Branch(l, r) => 1 + (depth(l) max depth(r))
+  } 
+
 }
 
 
@@ -60,7 +64,6 @@ object TreeExercises {
     // Ex. 3.27 Write depth.
     assert(Tree.depth(sT) == 2)
     assert(Tree.depth(iT) == 3)
-
 
 
 
