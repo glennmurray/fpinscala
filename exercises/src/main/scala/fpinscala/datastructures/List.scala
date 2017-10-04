@@ -224,6 +224,9 @@ object List { // `List` companion object. Contains functions for creating and wo
 }
 
 
+/**
+  * Test the List functions.
+  */
 object ListExercises {
   // Exercise 3.1
   val x = fpinscala.datastructures.List(1, 2, 3, 4, 5) match {
