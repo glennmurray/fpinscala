@@ -213,6 +213,7 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   // Ex. 3.24 Hard: As an example, implement hasSubsequence for checking
   // whether a List contains another List as a subsequence.
+  @annotation.tailrec
   def hasSubsequence[A](sup: List[A], sub: List[A])
       : Boolean = (sup, sub) match {
     case (Nil, Nil) => true
