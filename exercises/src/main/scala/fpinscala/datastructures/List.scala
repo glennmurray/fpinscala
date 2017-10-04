@@ -218,9 +218,7 @@ object List { // `List` companion object. Contains functions for creating and wo
     case (Nil, Nil) => true
     case (Nil, _) => false
     case (_, Nil) => true
-    case (Cons(ha, has), Cons(hb, hbs)) =>
-      if (ha == hb) hasSubsequence(has, hbs)
-      else hasSubsequence(has, hbs)
+    case (Cons(ha, has), Cons(hb, hbs)) => hasSubsequence(has, hbs)
   }
 }
 
