@@ -219,7 +219,9 @@ object List { // `List` companion object. Contains functions for creating and wo
     case (Nil, Nil) => true
     case (Nil, _) => false
     case (_, Nil) => true
-    case (Cons(ha, has), Cons(hb, hbs)) => hasSubsequence(has, hbs)
+    case (Cons(ha, has), Cons(hb, hbs)) =>
+      if (ha == hb) hasSubsequence(has, hbs)
+      else hasSubsequence(has, sub)
   }
 }
 
@@ -406,9 +408,12 @@ object ListExercises {
     // whether a List contains another List as a subsequence.
     assert(List.hasSubsequence(l, l))
     assert(List.hasSubsequence(l, Cons(3, Nil)))
+    assert( ! List.hasSubsequence(l, Cons(7, Nil)))
     assert(List.hasSubsequence(l, Cons(1, Nil)))
     assert(List.hasSubsequence(l, Cons(1, Cons(2, Nil))))
     assert(List.hasSubsequence(l, Cons(2, Cons(3, Nil))))
-
+    assert( ! List.hasSubsequence(l, Cons(2, Cons(7, Nil))))
+    assert( ! List.hasSubsequence(l, Cons(7, Cons(3, Nil))))
   }
+
 }
