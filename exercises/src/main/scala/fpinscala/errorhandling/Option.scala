@@ -1,11 +1,20 @@
 package fpinscala.errorhandling
 
-
-import scala.{Option => _, Some => _, Either => _, _} // hide std library `Option`, `Some` and `Either`, since we are writing our own in this chapter
+// hide std library `Option`, `Some` and `Either`,
+// since we are writing our own in this chapter
+import scala.{Option => _, Some => _, Either => _, _} 
 
 sealed trait Option[+A] {
-  def map[B](f: A => B): Option[B] = ???
+  // Ex. 4.1 Implement all of these functions on Option
+  //def map[B](f: A => B): Option[B] = ???
+  def map[B](f: A => B): Option[B] = this match {
+    case Some(a) => Some(f(a))
+    case _       => None
+  }
 
+  // The "default: => B" indicates that the argument is
+  // of type B, but won’t be evaluated until it’s needed
+  // by the function.
   def getOrElse[B>:A](default: => B): B = ???
 
   def flatMap[B](f: A => Option[B]): Option[B] = ???
@@ -14,17 +23,25 @@ sealed trait Option[+A] {
 
   def filter(f: A => Boolean): Option[A] = ???
 }
+
 case class Some[+A](get: A) extends Option[A]
 case object None extends Option[Nothing]
 
 object Option {
   def failingFn(i: Int): Int = {
-    val y: Int = throw new Exception("fail!") // `val y: Int = ...` declares `y` as having type `Int`, and sets it equal to the right hand side of the `=`.
+    // `val y: Int = ...` declares `y` as having type `Int`,
+    // and sets it equal to the right hand side of the `=`.
+    val y: Int = throw new Exception("fail!")
     try {
       val x = 42 + 5
       x + y
     }
-    catch { case e: Exception => 43 } // A `catch` block is just a pattern matching block like the ones we've seen. `case e: Exception` is a pattern that matches any `Exception`, and it binds this value to the identifier `e`. The match returns the value 43.
+    // A `catch` block is just a pattern matching block like the ones
+    // we've seen.
+    // `case e: Exception` is a pattern that matches any `Exception`,
+    // and it binds this value to the identifier `e`. The match
+    // returns the value 43.
+    catch { case e: Exception => 43 } 
   }
 
   def failingFn2(i: Int): Int = {
@@ -45,4 +62,31 @@ object Option {
   def sequence[A](a: List[Option[A]]): Option[List[A]] = ???
 
   def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = ???
+}
+
+
+object OptionExercises {
+  def main(args: Array[String]): Unit = {
+    val someInt = Some(42)
+
+    // Ex. 4.1 Implement all of the preceding functions on Option
+
+    // Implement def map[B](f: A => B): Option[B]
+    assert( Some(42).map( x => x + 1) == Some(43) )
+
+    // Implement  def getOrElse[B>:A](default: => B): B = ???
+
+    // Implement  def flatMap[B](f: A => Option[B]): Option[B] = ???
+
+    // Implement  def orElse[B>:A](ob: => Option[B]): Option[B] = ???
+
+    // Implement  def filter(f: A => Boolean): Option[A] = ???
+
+    // // Ex. 3.2, implement tail.
+    // assert(List.tail(l) match {
+    //   case Cons(2, Cons(3, Nil)) => true
+    //   case _ => false
+    // })
+
+  }
 }
