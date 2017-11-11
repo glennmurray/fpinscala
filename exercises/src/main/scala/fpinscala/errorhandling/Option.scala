@@ -74,17 +74,55 @@ object Option {
   def mean(xs: Seq[Double]): Option[Double] =
     if (xs.isEmpty) None
     else Some(xs.sum / xs.length)
-  //def variance(xs: Seq[Double]): Option[Double] = ???
   def variance(xs: Seq[Double]): Option[Double] = {
     mean(xs).flatMap(m => mean(xs.map(x => math.pow(x - m, 2)) ))
   }
 
+  // Exercise 4.3
+  // Write a generic function map2 that combines two Option values
+  // using a binary function. If either Option value is None, then the
+  // return value is, too. Here is its signature:
+  def map2A[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] =
+    (a, b) match {
+      case (Some(a), Some(b)) => println(s"YO $a $b"); Some(f(a, b))
+      case _                  => None
+    }
+  // With flatMap.
+  def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] =
+    a.flatMap( x => b.map(y => f(x, y)) )
 
-  def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = ???
+  // Exercise 4.4
+  // Write a function sequence that combines a list of Options into one
+  // Option containing a list of all the Some values in the original list.
+  // If the original list contains None even once, the result of the
+  // function should be None; otherwise the result should be Some with a
+  // list of all the values.
+  def sequence[A](a: List[Option[A]]): Option[List[A]] = a match {
+    case Nil    => Some(Nil)
+    case ho :: to => ho.flatMap(oa => sequence(to) map (oa :: _))
+  }
 
-  def sequence[A](a: List[Option[A]]): Option[List[A]] = ???
 
-  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = ???
+  // Exercise 4.5 Implement this function. It’s straightforward to do
+  // using map and sequence... 
+  // def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]]
+  def traverse0[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] =
+    sequence(a.map( f(_) ))
+  // ...but try for a more efficient implementation that only looks at
+  // the list once.
+  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] =
+    a match {
+      case Nil    => Some(Nil)
+      case h :: t => f(h) flatMap (x => traverse(t)(f).map(x :: _))
+      // Answers use map2, 
+      //case h :: t => map2(f(h), traverse(t)(f))(_ :: _)
+    }
+  // and foldRight:
+  //a.foldRight[Option[List[B]]](Some(Nil))((h,t) => map2(f(h),t)(_ :: _))
+  // In fact, implement sequence in terms of traverse.
+  def sequenceViaTraverse[A](a: List[Option[A]]): Option[List[A]] =
+    traverse(a)(x => x)
+
 }
 
 
@@ -120,5 +158,61 @@ object OptionExercises {
     // Exercise 4.2 Implement the variance function in terms of flatMap.
     val xs: Seq[Double] = Seq(1, 2, 3, 4)
     assert( fpinscala.errorhandling.Option.variance(xs) == Some(1.25) )
+
+    // Exercise 4.3
+    // Write a generic function map2 that combines two Option values
+    // using a binary function. If either Option value is None, then the
+    // return value is, too. Here is its signature:
+    //def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C].
+    assert( fpinscala.errorhandling.Option.map2(
+      Some(2), Some(3))( (x, y) => x + y ) == Some(5) )
+    // This won't work.
+    // assert( fpinscala.errorhandling.Option.map2(
+    //   None, None)( (x, y) => x + y ) == None )
+    val xN: Option[Int] = None
+    val yN: Option[Int] = None
+    assert( fpinscala.errorhandling.Option.map2(
+      xN, Some(3))( (x, y) => x + y ) == None )
+    assert( fpinscala.errorhandling.Option.map2(
+      xN, yN)( (x, y) => x + y ) == None )
+    assert( fpinscala.errorhandling.Option.map2A(
+      xN, Some(8))( (x, y) => x + y ) == None )
+
+    // Exercise 4.4
+    // Write a function sequence that combines a list of Options into one
+    // Option containing a list of all the Some values in the list.
+    // If the original list contains None even once, the result of the
+    // function should be None; otherwise the result should be Some with a
+    // list of all the values.
+    //   def sequence[A](a: List[Option[A]]): Option[List[A]] = ???
+    assert (fpinscala.errorhandling.Option
+      .sequence(List(Some(2), Some(4), Some(6))) == Some(List(2, 4, 6)))
+    assert (fpinscala.errorhandling.Option
+      .sequence(List(None, Some(4), Some(6)))    == None)
+    assert (fpinscala.errorhandling.Option
+      .sequence(List(Some(2), None, Some(6)))    == None)
+
+    // Exercise 4.5 Implement this function. It’s straightforward to do
+    // using map and sequence...
+    // def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]]
+    assert(fpinscala.errorhandling.Option
+      .traverse0(List(1, 2, 3))(x => Some(x * 2)) == Some(List(2, 4, 6)))
+    assert(fpinscala.errorhandling.Option
+      .traverse0(List(1, 2, 3))(x => None) == None)
+    // ... but try for a more efficient implementation that only looks at
+    // the list once.
+    assert(fpinscala.errorhandling.Option
+      .traverse(List(1, 2, 3))(x => Some(x * 2)) == Some(List(2, 4, 6)))
+    assert(fpinscala.errorhandling.Option
+      .traverse(List(1, 2, 3))(x => None) == None)
+    // In fact, implement sequence in terms of traverse.
+    assert (fpinscala.errorhandling.Option
+      .sequenceViaTraverse(List(Some(2), Some(4), Some(6))) ==
+      Some(List(2, 4, 6)))
+    assert (fpinscala.errorhandling.Option
+      .sequenceViaTraverse(List(None, Some(4), Some(6)))    == None)
+    assert (fpinscala.errorhandling.Option
+      .sequenceViaTraverse(List(Some(2), None, Some(6)))    == None)
+
   }
 }
