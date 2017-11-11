@@ -213,6 +213,5 @@ object OptionExercises {
       .sequenceViaTraverse(List(None, Some(4), Some(6)))    == None)
     assert (fpinscala.errorhandling.Option
       .sequenceViaTraverse(List(Some(2), None, Some(6)))    == None)
-
   }
 }
