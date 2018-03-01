@@ -139,6 +139,7 @@ object OptionExercises {
     assert( None.getOrElse("else") == "else" )
 
     // Implement  def flatMap[B](f: A => Option[B]): Option[B]
+    assert( Some("Odessa").flatMap( x => Some(x.length)) == Some(6) )
     assert( Some(42).flatMap( x => Some(x + 1)) == Some(43) )
     assert( Some(42).flatMap( x => None) == None )
 
@@ -152,6 +153,7 @@ object OptionExercises {
     // Convert Some to None if the value does not satisfy f.
     def even(i: Int): Boolean = i % 2 == 0
     assert( Some(42).filter(even) == Some(42) )
+    assert( Some(42).filter(i => i % 2 == 0) == Some(42) ) // Anon. function
     assert( Some(41).filter(even) == None ) 
     assert( None.filter(even) == None ) 
 
@@ -164,19 +166,20 @@ object OptionExercises {
     // using a binary function. If either Option value is None, then the
     // return value is, too. Here is its signature:
     //def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C].
+    def sumf(i: Int, j: Int): Int = i + j
     assert( fpinscala.errorhandling.Option.map2(
-      Some(2), Some(3))( (x, y) => x + y ) == Some(5) )
+      Some(2), Some(3))( sumf ) == Some(5) )
     // This won't work.
     // assert( fpinscala.errorhandling.Option.map2(
-    //   None, None)( (x, y) => x + y ) == None )
+    //   None, None)( sumf ) == None )
     val xN: Option[Int] = None
     val yN: Option[Int] = None
     assert( fpinscala.errorhandling.Option.map2(
-      xN, Some(3))( (x, y) => x + y ) == None )
+      xN, Some(3))( sumf ) == None )
     assert( fpinscala.errorhandling.Option.map2(
-      xN, yN)( (x, y) => x + y ) == None )
+      xN, yN)( sumf ) == None )
     assert( fpinscala.errorhandling.Option.map2A(
-      xN, Some(8))( (x, y) => x + y ) == None )
+      xN, Some(8))( sumf ) == None )
 
     // Exercise 4.4
     // Write a function sequence that combines a list of Options into one
