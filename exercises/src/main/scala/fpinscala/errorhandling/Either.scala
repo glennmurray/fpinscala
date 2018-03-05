@@ -13,9 +13,14 @@ sealed trait Either[+E,+A] {
     case Left(e)  => Left(e)
   }
 
- def flatMap[EE >: E, B](f: A => Either[EE, B]): Either[EE, B] = ???
+  //def flatMap[EE >: E, B](f: A => Either[EE, B]): Either[EE, B] = ???
+  def flatMap[EE >: E, B](f: A => Either[EE, B]): Either[EE, B] = this match {
+    case Right(a) => f(a)
+    case Left(e)  => Left(e)
+  }
 
- def orElse[EE >: E, B >: A](b: => Either[EE, B]): Either[EE, B] = ???
+  //def orElse[EE >: E, B >: A](b: => Either[EE, B]): Either[EE, B] = ???
+ def orElse[EE >: E, B >: A](b: => Either[EE, B]): Either[EE, B] = b
 
  def map2[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C] = ???
 
@@ -56,10 +61,14 @@ object EitherExercises {
 
     // def map[B](f: A => B): Either[E, B]
     assert( Left("e").map((e: String) => e.length) == Left("e") )
+    assert( Right("e").map((e: String) => e.length) == Right(1) )
 
     // def flatMap[EE >: E, B](f: A => Either[EE, B]): Either[EE, B]
+    assert( Left("e").flatMap((e: String) => Right(e.length)) == Left("e") )
+    assert( Right("e").flatMap((e: String) => Right(e.length)) == Right(1) )
 
     // def orElse[EE >: E, B >: A](b: => Either[EE, B]): Either[EE, B]
+//    assert( Left("e").orElse((e: String) => e.length) == Left("e") )
 
     // def map2[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C]
 
