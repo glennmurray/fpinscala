@@ -12,6 +12,9 @@ sealed trait Option[+A] {
     case _       => None
   }
 
+  // The function getOrElse tries to get the value contained
+  // in the Option, but if it's a None, it will return the default
+  // value provided by the caller.
   // The "default: => B" indicates that the argument is
   // of type B, but won’t be evaluated until it’s needed
   // by the function.
@@ -28,6 +31,8 @@ sealed trait Option[+A] {
   // }
   def flatMap[B](f: A => Option[B]): Option[B] = map(f).getOrElse(None)
 
+  // orElse returns the original Option if not None, or returns
+  // the provided Option as an alternative in that case.
   //def orElse[B>:A](ob: => Option[B]): Option[B] = ???
   def orElse[B>:A](ob: => Option[B]): Option[B] = ob
 
