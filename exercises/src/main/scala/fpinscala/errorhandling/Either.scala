@@ -33,13 +33,15 @@ sealed trait Either[+E,+A] {
   // // Write a generic function map2 that combines two Option values
   // // using a binary function. If either Option value is None, then the
   // // return value is, too.
+  // So here, if either value is Left, return Left, else return a single Right,
+  // or return f applied to the contents of two Rights.
   // Here is its signature:
   //def map2[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C] = ???
   def map2[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C] = this match{
     case Left(e)  => Left(e)
     case Right(a) => b match {
       case Left(e) => Left(e)
-      case Right(bb) => Right(f(a, bb))
+      case Right(b1) => Right(f(a, b1))
     }
   }
   // Answer:
@@ -48,13 +50,20 @@ sealed trait Either[+E,+A] {
       a <- this
       b1 <- b
     } yield f(a,b1)
-
+  // Desugared:
+  def map2B[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C] =
+    this flatMap (a =>
+      b map (b1 =>
+        f(a, b1)))
 }
 
 case class Left[+E](get: E) extends Either[E,Nothing]
 case class Right[+A](get: A) extends Either[Nothing,A]
 
 object Either {
+
+  // Exercise 4.7 Implement sequence and traverse for Either. These should
+  // return the first error that’s encountered, if there is one.
 
   def traverse[E,A,B](es: List[A])(f: A => Either[E, B]): Either[E, List[B]] = ???
 
@@ -73,7 +82,6 @@ object Either {
   def Try[A](a: => A): Either[Exception, A] =
     try Right(a)
     catch { case e: Exception => Left(e) }
-
 
 }
 
@@ -94,11 +102,25 @@ object EitherExercises {
 
     // def orElse[EE >: E, B >: A](b: => Either[EE, B]): Either[EE, B]
     assert( Left("e").orElse(Right(42)) == Right(42) )
-    println( Right(3).orElse(Right(42)) )
-    assert( Right(3).orElse(Right(42)) == Right(3) )
+    assert( Right(3).orElse(Right(42))  == Right(3) )
 
     // def map2[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C]
+    def f(a: String, b: String) = a + b
+    assert( Left("e").map2(Left("ee"))( f ) == Left("e") )
+    assert( Left("e").map2A(Left("ee"))( f ) == Left("e") )
+    assert( Left("e").map2B(Left("ee"))( f ) == Left("e") )
 
+    assert( Left("e").map2(Right("ee"))( f ) == Left("e") )
+    assert( Left("e").map2A(Right("ee"))( f ) == Left("e") )
+    assert( Left("e").map2B(Right("ee"))( f ) == Left("e") )
+
+    assert( Right("b").map2( Left("bb"))( f ) == Left("bb") )
+    assert( Right("b").map2A( Left("bb"))( f ) == Left("bb") )
+    assert( Right("b").map2B( Left("bb"))( f ) == Left("bb") )
+
+    assert( Right("b").map2( Right("bb"))( f ) == Right("bbb") )
+    assert( Right("b").map2A( Right("bb"))( f ) == Right("bbb") )
+    assert( Right("b").map2B( Right("bb"))( f ) == Right("bbb") )
 
 
   }
