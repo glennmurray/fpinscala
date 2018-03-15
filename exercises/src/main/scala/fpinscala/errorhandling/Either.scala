@@ -65,9 +65,41 @@ object Either {
   // Exercise 4.7 Implement sequence and traverse for Either. These should
   // return the first error that’s encountered, if there is one.
 
-  def traverse[E,A,B](es: List[A])(f: A => Either[E, B]): Either[E, List[B]] = ???
+  //def traverse[E,A,B](es: List[A])(f: A => Either[E, B]): Either[E, List[B]] = ???
+  def traverse[E,A,B](es: List[A])(f: A => Either[E, B]): Either[E, List[B]] =
+    es match {
+      case Nil     => Right(Nil)
+      case a :: as =>  f(a).map2(traverse(as)(f)) ( (a1, bs) => a1 :: bs )
+      // Better:
+      // case a :: as =>  f(a).map2( traverse(as)(f) ) (_ :: _)
+      //This is bad syntax:
+      //case a :: as =>  f(a) map2 (traverse(as)(f)) ( (a1, bs) => a1 :: bs )
+      // Have to do this, which seems really non-intuitive:
+      //case a :: as => (f(a) map2  traverse(as)(f)) ( (a1, bs) => a1 :: bs )
+      // s-e.org: 
+      //case h :: t  => (f(h) map2 traverse(t )(f)) (_ :: _)
+    }
+  // Use foldRight.  def foldRight[A,B](as: List[A], z: B)(f: (A, B) => B): B
+  // def traverse2[E,A,B](es: List[A])(f: A => Either[E, B]): Either[E, List[B]] =
+  //   es.foldRight(Right(List.empty[B]): Either[E, List[B]])( (a:A, bs: Either[E, List[B]]) => f(a).map2(bs)(_ :: _) )
+  def traverseA[E,A,B](es: List[A])(f: A => Either[E, B]): Either[E, List[B]] = 
+    es.foldRight[Either[E,List[B]]](Right(Nil))((a, b) => f(a).map2(b)(_ :: _))
 
-  def sequence[E,A](es: List[Either[E,A]]): Either[E,List[A]] = ???
+
+  // Here is sequence for Option.
+  //   def sequence[A](a: List[Option[A]]): Option[List[A]] = a match {
+  //   case Nil    => Some(Nil)
+  //   case ho :: to => ho.flatMap(oa => sequence(to) map (oa :: _))
+  // }
+  //def sequence[E,A](es: List[Either[E,A]]): Either[E,List[A]] = ???
+  def sequence[E,A](es: List[Either[E,A]]): Either[E,List[A]] = es match {
+    case Nil        => Right(Nil)
+    case hes :: tes => hes.flatMap(he => sequence(tes).map(he :: _))
+  }
+  // Implementation with traverse.
+  def sequenceA[E,A](es: List[Either[E,A]]): Either[E,List[A]] =
+    traverse(es)(e => e)
+
 
   def mean(xs: IndexedSeq[Double]): Either[String, Double] =
     if (xs.isEmpty)
@@ -122,7 +154,39 @@ object EitherExercises {
     assert( Right("b").map2A( Right("bb"))( f ) == Right("bbb") )
     assert( Right("b").map2B( Right("bb"))( f ) == Right("bbb") )
 
+    //def traverse[E,A,B](es: List[A])(f: A => Either[E, B]): Either[E, List[B]]
+    val list0 = List(0, 1)
+    val list1 = List(1, 0)
+    val list2 = List(1, 2)
+    def sd(y: Int): Either[Exception, Int] = Either.safeDiv(4, y)
+    assert( Either.traverse(list0)(sd).orElse(Left("YO")) == Left("YO") )
+    assert( Either.traverseA(list0)(sd).orElse(Left("YO")) == Left("YO") )
 
+    assert( Either.traverse(list1)(sd).orElse(Left("YO")) == Left("YO") )
+    assert( Either.traverseA(list1)(sd).orElse(Left("YO")) == Left("YO") )
+
+    assert( Either.traverse(list2)(sd).orElse(Left("YO")) == Right(List(4, 2)) )
+    assert( Either.traverseA(list2)(sd).orElse(Left("YO")) == Right(List(4, 2)) )
+
+    //def sequence[E,A](es: List[Either[E,A]]): Either[E,List[A]] = ???
+    val l0 = List(Left("e0"), Left("e1"))
+    val l1 = List(Right("r0"), Left("e1"))
+    val l2 = List(Left("e0"), Left("e1"))
+    val l3 = List(Right("r0"), Right("r1"))
+    assert( Either.sequence(l0) == Left("e0") )
+    assert( Either.sequenceA(l0) == Left("e0") )
+
+    assert( Either.sequence(l1) == Left("e1") )
+    assert( Either.sequenceA(l1) == Left("e1") )
+
+    assert( Either.sequence(l2) == Left("e0") )
+    assert( Either.sequenceA(l2) == Left("e0") )
+
+    assert( Either.sequence(l3) == Right(List("r0", "r1")) )
+    assert( Either.sequenceA(l3) == Right(List("r0", "r1")) )
+
+    // Exercise 4.8
+    // See the comment in answers..Either.
   }
 }
 

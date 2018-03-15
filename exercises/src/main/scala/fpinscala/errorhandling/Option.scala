@@ -107,7 +107,6 @@ object Option {
     case ho :: to => ho.flatMap(oa => sequence(to) map (oa :: _))
   }
 
-
   // Exercise 4.5 Implement this function. It’s straightforward to do
   // using map and sequence... 
   // def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]]
