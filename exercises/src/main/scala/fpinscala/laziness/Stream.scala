@@ -72,3 +72,15 @@ object Stream {
 
   def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = ???
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+object StreamExercises {
+
+    def main(args: Array[String]): Unit = {
+      // Exercise 5.1
+      println("YO")
+
+    }
+}
