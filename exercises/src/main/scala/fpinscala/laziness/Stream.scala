@@ -14,7 +14,7 @@ trait Stream[+A] {
       case _ => z
     }
 
-  def exists(p: A => Boolean): Boolean = 
+  def exists(p: A => Boolean): Boolean =
     foldRight(false)((a, b) => p(a) || b)
   // Here `b` is the unevaluated recursive step that folds the tail of the
   // stream. If `p(a)` returns `true`, `b` will never be evaluated and the
@@ -29,7 +29,11 @@ trait Stream[+A] {
   // Exercise 5.1 Write a function to convert a Stream to a List, which will
   // force its evaluation and let you look at it in the REPL.
   // This done as toListRecursive and tail recursive in the answers.
-  def toList: List[A] = ???
+  //def toList: List[A] = ???
+  def toList: List[A] = this match {
+    case Empty      => List.empty[A]
+    case Cons(h, t) => h() :: t().toList
+  }
 
   // Exercise 5.2 Write the function take(n) for returning the first n
   // elements of a Stream, and drop(n) for skipping the first n elements of a
@@ -79,8 +83,13 @@ object Stream {
 object StreamExercises {
 
     def main(args: Array[String]): Unit = {
+
       // Exercise 5.1
-      println("YO")
+      //println(Stream(1, 2, 3))  // Prints a mess.
+      //println(Stream(1, 2, 3).toList) // List(1, 2, 3)
+      assert(Stream(1, 2, 3).toList equals List(1, 2, 3))
+
+
 
     }
 }
