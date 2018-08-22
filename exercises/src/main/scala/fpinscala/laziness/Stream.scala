@@ -38,7 +38,15 @@ trait Stream[+A] {
   // Exercise 5.2 Write the function take(n) for returning the first n
   // elements of a Stream, and drop(n) for skipping the first n elements of a
   // Stream.
-  def take(n: Int): Stream[A] = ???
+  //def take(n: Int): Stream[A] = ???
+  def take(n: Int): Stream[A] = this match {
+    case Empty                => Empty
+    case Cons(h, t) if n < 1  => this
+    case Cons(h, t) if n == 1 => cons( h(), Empty )
+    //case Cons(h, t) if n > 0 => Cons( () => h(), () => t().take(n - 1) )
+    case Cons(h, t)           => cons( h(), t().take(n - 1) )
+
+  }
 
   def drop(n: Int): Stream[A] = ???
 
@@ -87,7 +95,17 @@ object StreamExercises {
       // Exercise 5.1
       //println(Stream(1, 2, 3))  // Prints a mess.
       //println(Stream(1, 2, 3).toList) // List(1, 2, 3)
-      assert(Stream(1, 2, 3).toList equals List(1, 2, 3))
+      assert(Stream(1, 2, 3).toList == List(1, 2, 3))
+
+      // Exercise 5.2
+      assert( Empty.take(1) == Empty )
+      val s52 = Stream(1, 2, 3, 4)
+      //println(Stream(1, 2, 3).take(2).toList) // List(1, 2)
+      assert( s52.take(0).toList  == s52.toList )
+      assert( s52.take(-2).toList == s52.toList )
+      assert( s52.take(1).toList  == s52.toList.take(1) )
+      assert( s52.take(9).toList  == s52.toList )
+      assert( s52.take(s52.toList.length).toList  == s52.toList )
 
 
 
