@@ -78,10 +78,35 @@ trait Stream[+A] {
       if (f(h)) cons(h,t)
       else      empty)
 
-  def headOption: Option[A] = ???
+  // Exercise 5.6 Hard: Implement headOption using foldRight. 
+  //def headOption: Option[A] = ???
+  def headOption: Option[A] = this match {
+    case Empty      => None
+    case Cons(h, t) => Some(h())
+  }
+  def headOptionFR: Option[A] = foldRight(None: Option[A])((h, t) => Some(h))
 
-  // 5.7 map, filter, append, flatmap using foldRight. Part of the exercise is
-  // writing your own function signatures.
+  // Exercise 5.7 Implement map, filter, append, and flatmap using foldRight.
+  // Part of the exercise is writing your own function signatures.
+  def map[B](f: A => B): Stream[B] =
+    this.foldRight(Empty: Stream[B])((h, t) => cons(f(h), t))
+
+  def filter(p: A => Boolean): Stream[A] =
+    this.foldRight(Empty: Stream[A])((h, t) => if (p(h)) cons(h, t) else t)
+
+  // About [B>:A].  Up at the top we have "trait Stream[+A]", so that Stream is
+  // covariant in A.  This means that if A is a subtype of B, then Stream[A] is
+  // a subtype of Stream[B].  If we append Stream[B] to Stream[A], we would
+  // expect that the methods we could call on the result would apply to both A
+  // and B, so we require that B be a parent of A; i.e., A is a lower type
+  // bound for B.
+  // https://docs.scala-lang.org/tour/lower-type-bounds.html
+  // https://www.atlassian.com/blog/software-teams/covariance-and-contravariance-in-scala
+  def append[B>:A](s: Stream[B]): Stream[B] =
+    foldRight(s)((h, t) => cons(h, t))
+
+  // def flatmap(f: A => Stream[B]): Stream[B] =
+  //   foldRight(Empty: Stream[B])((h, t) => 
 
   def startsWith[B](s: Stream[B]): Boolean = ???
 }
@@ -155,10 +180,34 @@ object StreamExercises {
       val s54 = Stream(1, 3, 5, 7)
       assert( s54.forAll(pred54) == true )
 
-      // // Exercise 5.5
+      // Exercise 5.5
       assert( Empty.takeWhileFr(pred53).toList == List.empty[Int] )
       assert( s52.takeWhileFr(pred53).toList == List(1, 2) )
       assert( s53.takeWhileFr(pred53).toList == s53.toList )
+
+      // Exercise 5.6
+      assert( Empty.headOption == None )
+      assert( s52.headOption == Some(1) )
+      assert( Empty.headOptionFR == None )
+      assert( s52.headOptionFR == Some(1) )
+
+      // Exercise 5.7 map
+      val s57 = Stream(1, 2, 3)
+      def f57(i: Int): String = "I" * i
+      assert( Empty.map(f57).toList == List.empty[String] )
+      assert( s57.map(f57).toList == List("I", "II", "III") )
+
+      // Exercise 5.7 filter
+      def p57(i: Int): Boolean = (0 == i % 2)
+      assert( Empty.filter(p57).toList == List.empty[Int])
+      assert( s57.filter(p57).toList   == List(2) )
+
+      // Exercise 5.7 append
+      assert( Empty.append(s57).toList == s57.toList )
+      assert( s52.append(s57).toList == s52.toList ::: s57.toList )
+
+      // Exercise 5.7 flatMap
+
 
     }
 }
