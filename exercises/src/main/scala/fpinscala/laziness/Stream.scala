@@ -1,6 +1,7 @@
 package fpinscala.laziness
 
 import Stream._
+
 trait Stream[+A] {
 
   def foldRight[B](z: => B)(f: (A, => B) => B): B =
@@ -86,7 +87,7 @@ trait Stream[+A] {
   }
   def headOptionFR: Option[A] = foldRight(None: Option[A])((h, t) => Some(h))
 
-  // Exercise 5.7 Implement map, filter, append, and flatmap using foldRight.
+  // Exercise 5.7 Implement map, filter, append, and flatMap using foldRight.
   // Part of the exercise is writing your own function signatures.
   def map[B](f: A => B): Stream[B] =
     this.foldRight(Empty: Stream[B])((h, t) => cons(f(h), t))
@@ -105,16 +106,22 @@ trait Stream[+A] {
   def append[B>:A](s: Stream[B]): Stream[B] =
     foldRight(s)((h, t) => cons(h, t))
 
-  // def flatmap(f: A => Stream[B]): Stream[B] =
-  //   foldRight(Empty: Stream[B])((h, t) => 
+  def flatMap[B](f: A => Stream[B]): Stream[B] =
+    foldRight(Empty: Stream[B])((h, t) => f(h).append(t))
 
+  // Exercise 5.14 Hard: Implement startsWith using functions you’ve written.
+  // It should check if one Stream is a prefix of another. For instance,
+  // Stream(1,2,3) startsWith Stream(1,2) would be true.
   def startsWith[B](s: Stream[B]): Boolean = ???
 }
+
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
 
 
-/**  The companion object.  */
+/**  
+  * The companion object.  
+  */
 object Stream {
   /**
     * The "smart" constructor.
@@ -207,7 +214,12 @@ object StreamExercises {
       assert( s52.append(s57).toList == s52.toList ::: s57.toList )
 
       // Exercise 5.7 flatMap
+      def f57b(i: Int): Stream[String] =
+        Stream((1 to i).map(j => "I" * j).toList :_*)
+      assert( Empty.flatMap(f57b).toList == List.empty[String] )
+      println( s57.flatMap(f57b).toList )
+      ( s57.flatMap(f57b).toList == List("I", "I", "II", "I", "II", "III") )
 
-
+      // Exercise 5.7 
     }
 }
