@@ -173,10 +173,21 @@ object Stream {
   // Exercise 5.11  Write a more general stream-building function called unfold.
   // It takes an initial state, and a function for producing both the next state
   // and the next value in the generated stream.
-  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = ???
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = {
+    f(z) match {
+      case None         => Stream.empty
+      case Some((a, s)) => cons(a, unfold(s)(f))
+    }
+  }
 
+  // Exercise 5.12 Write fibs, from, constant, and ones in terms of unfold.
+  def fibsByUnfold: Stream[Int] = {
+    unfold((0, 1))( p => Some( p._1, (p._2, p._1 + p._2)) )
+  }
+  def fromByUnfold(n: Int): Stream[Int] = unfold(n)( s => Some((s, s + 1)) )
+  def constantByUnfold[A](a: A): Stream[A] = unfold(a)( s => Some((a, a)) )
+  def onesByUnfold: Stream[Int] = unfold(1)( s => Some((1, 1)) )
 
-  
 }
 
 
@@ -255,17 +266,24 @@ object StreamExercises {
       //println( s57.flatMap(f57b).toList )
       ( s57.flatMap(f57b).toList == List("I", "I", "II", "I", "II", "III") )
 
-      // Exercise 5.8
+      // Exercise 5.8 constant
       assert( Stream.constant("a").take(4).toList == List("a", "a", "a", "a") )
     
-      // Exercise 5.9
+      // Exercise 5.9 from(Int)
       assert( Stream.from(4).take(3).toList == List(4, 5, 6) )
 
-      // Exercise 5.10
+      // Exercise 5.10 fibs
       assert( fibs.take(10).toList == List(0, 1, 1, 2, 3, 5, 8, 13, 21, 34) )
 
+      // Exercise 5.11 unfold().  This is tested in the ff. exercises.
 
+      // Exercise 5.12 fibs, constant, ones
+      assert( fibsByUnfold.take(8).toList == List(0, 1, 1, 2, 3, 5, 8, 13) )
+      assert( fromByUnfold(4).take(3).toList  == List(4, 5, 6) )
+      assert( constantByUnfold("a").take(4).toList == List("a", "a", "a", "a") )
+      assert( onesByUnfold.take(5).toList == List(1, 1, 1, 1, 1) )
 
+      
     }
 }
 
